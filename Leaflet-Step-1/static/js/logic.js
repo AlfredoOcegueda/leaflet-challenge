@@ -1,17 +1,17 @@
-// Map object
+// Creating map object
 var myMap = L.map("map", {
     center: [39.02, -97.82],
-    zoom: 5
+    zoom: 3
   });
 
 // Earthquakes URL Variable
-var earthquake_url = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson";
+var earthquakes_url = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson";
 
 // Retrieve earthquakesURL with D3
-d3.json(earthquake_url, function(earthquakeData) {
+d3.json(earthquakes_url, function(earthquakeData) {
 
-// Initialize and create a LayerGroup "earthquake"
-var earthquake = new L.LayerGroup()
+// Initialize and create a LayerGroup "earthquakes"
+var earthquakes = new L.LayerGroup()
 
 // Adding tile layer
 L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
@@ -36,7 +36,7 @@ L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_toke
         return {
           opacity: 1,
           fillOpacity: 1,
-          fillColor: chooseColor(feature.properties.mag),
+          fillColor: getColor(feature.properties.mag),
           color: "#000000",
           radius: markerSize(feature.properties.mag),
           stroke: true,
@@ -44,21 +44,13 @@ L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_toke
         };
     }
     // Function to Determine Color of Marker
-    function chooseColor(magnitude) {
-        switch (true) {
-        case magnitude > 5:
-            return "#CC0033";
-        case magnitude > 4:
-            return "#FF6600";
-        case magnitude > 3:
-            return "#FFFF00";
-        case magnitude > 2:
-            return "#99CC00";
-        case magnitude > 1:
-            return "#006633";
-        default:
-            return "#DAF7A6";
-        }
+    function getColor(d) {
+        return d > 5  ? '#f16b6b' :
+               d > 4  ? '#f0a76b' :
+               d > 3  ? '#f3ba4e' :
+               d > 2  ? '#f3db4c' :
+               d > 1  ? '#e1f24c' :
+                        '#b7f34d';
     }
 
     // Create a Layer Containing the Features
@@ -77,12 +69,12 @@ L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_toke
         }
 
     // Add earthquakeData to earthquakes LayerGroup
-    }).addTo(earthquake);
+    }).addTo(earthquakes);
 
     // Add earthquakes Layer to the Map
-    earthquake.addTo(myMap);
+    earthquakes.addTo(myMap);
 
-    // Set Up Legend
+    //Set Up Legend
     var legend = L.control({ position: "bottomright" });
     legend.onAdd = function() {
         var div = L.DomUtil.create("div", "legend"), 
@@ -92,7 +84,7 @@ L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_toke
 
         for (var i = 0; i < magnitudeLevels.length; i++) {
             div.innerHTML +=
-                '<i style="background: ' + chooseColor(magnitudeLevels[i] + 1) + '"></i> ' +
+                '<i style="background: ' + getColor(magnitudeLevels[i] + 1) + '"></i> ' +
                 magnitudeLevels[i] + (magnitudeLevels[i + 1] ? '&ndash;' + magnitudeLevels[i + 1] + '<br>' : '+');
         }
         return div;
